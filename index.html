@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>易经起卦</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container" id="bindPage">
+    <h2>绑定信息</h2>
+    <label>姓名：<input type="text" id="name"></label><br>
+    <label>性别：
+      <select id="gender">
+        <option value="男">男</option>
+        <option value="女">女</option>
+      </select>
+    </label><br>
+    <label>出生日期：<input type="date" id="birth"></label><br>
+    <button onclick="saveUserInfo()">提交绑定</button>
+  </div>
+
+  <div class="container" id="guaPage" style="display:none;">
+    <p>心中想着所占之事，点击确定后完成起卦</p>
+    <button onclick="startGua()">开始起卦</button>
+    <div id="guaResult" style="margin-top:20px;"></div>
+  </div>
+
+  <script src="gua.js"></script>
+  <script>
+    // 判断是否已有绑定信息
+    window.onload = function() {
+      if (localStorage.getItem("userInfo")) {
+        document.getElementById("bindPage").style.display = "none";
+        document.getElementById("guaPage").style.display = "block";
+      }
+    }
+
+    function saveUserInfo() {
+      const name = document.getElementById("name").value.trim();
+      const gender = document.getElementById("gender").value;
+      const birth = document.getElementById("birth").value;
+
+      if (name && birth) {
+        const info = { name, gender, birth };
+        localStorage.setItem("userInfo", JSON.stringify(info));
+        document.getElementById("bindPage").style.display = "none";
+        document.getElementById("guaPage").style.display = "block";
+      } else {
+        alert("请填写完整信息！");
+      }
+    }
+
+    function startGua() {
+        const now = Date.now();
+        const logKey = "guaTimestamps";
+        let timestamps = JSON.parse(localStorage.getItem(logKey)) || [];
+      
+        // 只保留两分钟内的记录
+        timestamps = timestamps.filter(ts => now - ts < 2 * 60 * 1000);
+        timestamps.push(now);
+        localStorage.setItem(logKey, JSON.stringify(timestamps));
+      
+        if (timestamps.length > 3) {
+          document.getElementById("guaResult").innerHTML = `
+            <p style="color: red; font-weight: bold;">一卦不二占，需心诚。</p>
+          `;
+          return;
+        }
+      
+        const gua = getRandomGua();
+        document.getElementById("guaResult").innerHTML = `
+          <h3>${gua.name}</h3>
+          <p>${gua.explanation}</p>
+        `;
+      }
+      
+  </script>
+</body>
+</html>
